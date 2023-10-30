@@ -1,6 +1,7 @@
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
+import matplotlib.pyplot as plt
 
 # กำหนด Universe of Discourse
 input_current_volume = ctrl.Antecedent(np.arange(0, 101, 1), 'current_volume')
@@ -99,3 +100,42 @@ controlled_volume_name = list(output_controlled_volume.terms.keys())[controlled_
 
 print(f"\033[93mControlled Volume: {volume_simulator.output['controlled_volume']} ({controlled_volume_name})\033[93m")
 print("\033[95mGood to see you guys\033")
+
+
+# Define the range of values for current_volume and desired_volume
+current_volume_values = np.arange(0, 101, 1)
+desired_volume_values = np.arange(0, 101, 1)
+
+# Create a grid of current_volume and desired_volume values
+current_volume, desired_volume = np.meshgrid(current_volume_values, desired_volume_values)
+
+# Calculate the corresponding controlled volume values
+controlled_volume = np.zeros_like(current_volume)
+
+for i in range(current_volume.shape[0]):
+    for j in range(current_volume.shape[1]):
+        volume_simulator.input['current_volume'] = current_volume[i, j]
+        volume_simulator.input['desired_volume'] = desired_volume[i, j]
+        volume_simulator.compute()
+        controlled_volume[i, j] = volume_simulator.output['controlled_volume']
+
+# Plot the input surfaces
+fig = plt.figure(figsize=(12, 5))
+
+ax = fig.add_subplot(121, projection='3d')
+ax.plot_surface(current_volume, desired_volume, current_volume, cmap='viridis')
+ax.set_xlabel('Current Volume')
+ax.set_ylabel('Desired Volume')
+ax.set_zlabel('Membership')
+ax.set_title('Input - Current Volume')
+
+ax = fig.add_subplot(122, projection='3d')
+ax.plot_surface(current_volume, desired_volume, controlled_volume, cmap='viridis')
+ax.set_xlabel('Current Volume')
+ax.set_ylabel('Desired Volume')
+ax.set_zlabel('Membership')
+ax.set_title('Output - Controlled Volume')
+
+plt.show()
+
+
